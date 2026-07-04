@@ -5,6 +5,7 @@ import { useCurrency } from '../context/CurrencyContext';
 import { useCart } from '../context/CartContext';
 import { Link } from 'react-router-dom';
 import { Star, ShoppingCart, Sparkles, Lightbulb, Compass, Flame, Radio } from 'lucide-react';
+import { API_URL } from '../config';
 
 const Lighting = () => {
   const { t } = useTranslation();
@@ -26,7 +27,7 @@ const Lighting = () => {
 
   useEffect(() => {
     setLoading(true);
-    let url = 'http://localhost:5000/api/products?category=lighting';
+    let url = `${API_URL}/api/products?category=lighting`;
     if (subCategoryFilter) {
       url += `&sub_category=${subCategoryFilter}`;
     }

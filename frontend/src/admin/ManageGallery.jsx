@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { Plus, Trash2, Edit3, ShieldAlert, Upload, X, Check, Eye, EyeOff } from 'lucide-react';
+import { API_URL } from '../config';
 
 const ManageGallery = () => {
   const { token } = useAuth();
@@ -24,7 +25,7 @@ const ManageGallery = () => {
   const [successMsg, setSuccessMsg] = useState('');
 
   const fetchGallery = () => {
-    fetch('http://localhost:5000/api/gallery?all=true', {
+    fetch(`${API_URL}/api/gallery?all=true`, {
       headers: {
         'Authorization': `Bearer ${token}`
       }
@@ -83,7 +84,7 @@ const ManageGallery = () => {
     formData.append('image', file);
 
     try {
-      const response = await fetch('http://localhost:5000/api/upload', {
+      const response = await fetch(`${API_URL}/api/upload`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`
@@ -126,8 +127,8 @@ const ManageGallery = () => {
 
     try {
       const url = editId 
-        ? `http://localhost:5000/api/gallery/${editId}` 
-        : 'http://localhost:5000/api/gallery';
+        ? `${API_URL}/api/gallery/${editId}` 
+        : `${API_URL}/api/gallery`;
       const method = editId ? 'PUT' : 'POST';
 
       const response = await fetch(url, {
@@ -156,7 +157,7 @@ const ManageGallery = () => {
     if (!window.confirm('Delete this gallery item?')) return;
 
     try {
-      const response = await fetch(`http://localhost:5000/api/gallery/${id}`, {
+      const response = await fetch(`${API_URL}/api/gallery/${id}`, {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${token}`

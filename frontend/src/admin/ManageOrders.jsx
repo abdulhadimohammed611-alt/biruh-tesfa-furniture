@@ -3,6 +3,7 @@ import { useAuth } from '../context/AuthContext';
 import { useCurrency } from '../context/CurrencyContext';
 import { useLanguage } from '../context/LanguageContext';
 import { ShoppingCart, Eye, Edit3, Calendar, DollarSign, RefreshCw } from 'lucide-react';
+import { API_URL } from '../config';
 
 const ManageOrders = () => {
   const { token } = useAuth();
@@ -15,7 +16,7 @@ const ManageOrders = () => {
 
   const fetchOrders = () => {
     setLoading(true);
-    fetch('http://localhost:5000/api/admin/orders', {
+    fetch(`${API_URL}/api/admin/orders`, {
       headers: {
         'Authorization': `Bearer ${token}`
       }
@@ -37,7 +38,7 @@ const ManageOrders = () => {
 
   const handleOrderStatusChange = async (id, status) => {
     try {
-      const response = await fetch(`http://localhost:5000/api/admin/orders/${id}/status`, {
+      const response = await fetch(`${API_URL}/api/admin/orders/${id}/status`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -59,7 +60,7 @@ const ManageOrders = () => {
 
   const handlePaymentChange = async (id, paymentStatus) => {
     try {
-      const response = await fetch(`http://localhost:5000/api/admin/orders/${id}/payment`, {
+      const response = await fetch(`${API_URL}/api/admin/orders/${id}/payment`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -81,7 +82,7 @@ const ManageOrders = () => {
 
   const viewOrderDetails = async (orderId) => {
     try {
-      const response = await fetch(`http://localhost:5000/api/orders/${orderId}`, {
+      const response = await fetch(`${API_URL}/api/orders/${orderId}`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }

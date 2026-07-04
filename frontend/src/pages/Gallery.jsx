@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useLanguage } from '../context/LanguageContext';
 import { Camera, MapPin, Compass } from 'lucide-react';
+import { API_URL } from '../config';
 
 const Gallery = () => {
   const { t } = useTranslation();
@@ -10,7 +11,7 @@ const Gallery = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch('http://localhost:5000/api/gallery')
+    fetch(`${API_URL}/api/gallery`)
       .then((res) => res.json())
       .then((data) => {
         setItems(data);

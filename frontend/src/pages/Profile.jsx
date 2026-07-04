@@ -5,6 +5,7 @@ import { useAuth } from '../context/AuthContext';
 import { useCurrency } from '../context/CurrencyContext';
 import { useLanguage } from '../context/LanguageContext';
 import { ShieldCheck, Calendar, DollarSign, Edit3, ShoppingBag, Eye, RefreshCw } from 'lucide-react';
+import { API_URL } from '../config';
 
 const Profile = () => {
   const { t } = useTranslation();
@@ -53,7 +54,7 @@ const Profile = () => {
     }
 
     if (successOrderId && orderSuccess === 'true' && token) {
-      fetch(`http://localhost:5000/api/orders/verify-payment/${successOrderId}`, {
+      fetch(`${API_URL}/api/orders/verify-payment/${successOrderId}`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
@@ -87,7 +88,7 @@ const Profile = () => {
 
   const handleSimulatePayment = async (orderId) => {
     try {
-      const response = await fetch('http://localhost:5000/api/orders/simulate-payment', {
+      const response = await fetch(`${API_URL}/api/orders/simulate-payment`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -109,7 +110,7 @@ const Profile = () => {
 
   const viewOrderDetails = async (orderId) => {
     try {
-      const response = await fetch(`http://localhost:5000/api/orders/${orderId}`, {
+      const response = await fetch(`${API_URL}/api/orders/${orderId}`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }

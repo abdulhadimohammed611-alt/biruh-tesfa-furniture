@@ -3,6 +3,7 @@ import { useAuth } from '../context/AuthContext';
 import { useCurrency } from '../context/CurrencyContext';
 import { useLanguage } from '../context/LanguageContext';
 import { DollarSign, ShoppingBag, Users, Layers, TrendingUp, Calendar } from 'lucide-react';
+import { API_URL } from '../config';
 
 const Dashboard = () => {
   const { token } = useAuth();
@@ -13,7 +14,7 @@ const Dashboard = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch('http://localhost:5000/api/admin/stats', {
+    fetch(`${API_URL}/api/admin/stats`, {
       headers: {
         'Authorization': `Bearer ${token}`
       }

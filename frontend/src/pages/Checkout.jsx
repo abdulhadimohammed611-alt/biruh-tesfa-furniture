@@ -6,6 +6,7 @@ import { useCurrency } from '../context/CurrencyContext';
 import { useLanguage } from '../context/LanguageContext';
 import { useAuth } from '../context/AuthContext';
 import { CreditCard, ShieldCheck, ShoppingBag, Truck, MapPin, Phone, ShieldAlert, Sparkles, Building } from 'lucide-react';
+import { API_URL } from '../config';
 
 const Checkout = () => {
   const { t } = useTranslation();
@@ -76,7 +77,7 @@ const Checkout = () => {
     }));
 
     try {
-      const response = await fetch('http://localhost:5000/api/orders', {
+      const response = await fetch(`${API_URL}/api/orders`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

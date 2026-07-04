@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { Users, ShieldAlert, Award, RefreshCw } from 'lucide-react';
+import { API_URL } from '../config';
 
 const ManageUsers = () => {
   const { token, user: currentUser } = useAuth();
@@ -10,7 +11,7 @@ const ManageUsers = () => {
 
   const fetchUsers = () => {
     setLoading(true);
-    fetch('http://localhost:5000/api/admin/users', {
+    fetch(`${API_URL}/api/admin/users`, {
       headers: {
         'Authorization': `Bearer ${token}`
       }
@@ -40,7 +41,7 @@ const ManageUsers = () => {
     if (!window.confirm(`Are you sure you want to change this user's role to ${nextRole}?`)) return;
 
     try {
-      const response = await fetch(`http://localhost:5000/api/admin/users/${userId}/role`, {
+      const response = await fetch(`${API_URL}/api/admin/users/${userId}/role`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',

@@ -6,6 +6,7 @@ import { useCurrency } from '../context/CurrencyContext';
 import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
 import { Star, ShieldAlert, ShoppingBag, Plus, Minus, ArrowLeft, Send } from 'lucide-react';
+import { API_URL } from '../config';
 
 const ProductDetail = () => {
   const { id } = useParams();
@@ -27,7 +28,7 @@ const ProductDetail = () => {
   const [errorMsg, setErrorMsg] = useState('');
 
   const fetchProductDetails = () => {
-    fetch(`http://localhost:5000/api/products/${id}`)
+    fetch(`${API_URL}/api/products/${id}`)
       .then((res) => res.json())
       .then((data) => {
         setProduct(data);
@@ -57,7 +58,7 @@ const ProductDetail = () => {
     setErrorMsg('');
 
     try {
-      const response = await fetch('http://localhost:5000/api/reviews', {
+      const response = await fetch(`${API_URL}/api/reviews`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

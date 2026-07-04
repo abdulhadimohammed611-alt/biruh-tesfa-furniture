@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useCurrency } from '../context/CurrencyContext';
 import { Plus, Edit2, Trash2, ShieldAlert, Upload, X, Check } from 'lucide-react';
+import { API_URL } from '../config';
 
 const ManageProducts = () => {
   const { token } = useAuth();
@@ -34,7 +35,7 @@ const ManageProducts = () => {
   const [categories, setCategories] = useState([]);
 
   const fetchProducts = () => {
-    fetch('http://localhost:5000/api/products')
+    fetch(`${API_URL}/api/products`)
       .then(res => res.json())
       .then(data => {
         setProducts(data);
@@ -47,7 +48,7 @@ const ManageProducts = () => {
   };
 
   const fetchCategories = () => {
-    fetch('http://localhost:5000/api/categories?all=true')
+    fetch(`${API_URL}/api/categories?all=true`)
       .then(res => res.json())
       .then(data => {
         setCategories(data);
@@ -113,7 +114,7 @@ const ManageProducts = () => {
     formData.append('image', file);
 
     try {
-      const response = await fetch('http://localhost:5000/api/upload', {
+      const response = await fetch(`${API_URL}/api/upload`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`
@@ -166,8 +167,8 @@ const ManageProducts = () => {
     };
 
     const url = editingProduct 
-      ? `http://localhost:5000/api/products/${editingProduct.id}` 
-      : 'http://localhost:5000/api/products';
+      ? `${API_URL}/api/products/${editingProduct.id}` 
+      : `${API_URL}/api/products`;
     
     const method = editingProduct ? 'PUT' : 'POST';
 
@@ -198,7 +199,7 @@ const ManageProducts = () => {
     if (!window.confirm('Are you sure you want to delete this product? This action is irreversible.')) return;
 
     try {
-      const response = await fetch(`http://localhost:5000/api/products/${id}`, {
+      const response = await fetch(`${API_URL}/api/products/${id}`, {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${token}`

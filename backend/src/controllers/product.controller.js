@@ -60,7 +60,7 @@ const getAllProducts = async (req, res) => {
     const result = await db.query(queryText, params);
     return res.status(200).json(result.rows);
   } catch (error) {
-    console.error('Fetch products error:', error);
+    console.error(error);
     return res.status(500).json({ message: 'Server error fetching products.' });
   }
 };

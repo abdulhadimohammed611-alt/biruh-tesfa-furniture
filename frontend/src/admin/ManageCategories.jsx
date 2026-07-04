@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useLanguage } from '../context/LanguageContext';
 import { Plus, Trash2, Edit3, FolderOpen, Upload, X, Check, ShieldAlert, Eye, EyeOff } from 'lucide-react';
+import { API_URL } from '../config';
 
 const ManageCategories = () => {
   const { token } = useAuth();
@@ -25,7 +26,7 @@ const ManageCategories = () => {
 
   const fetchCategories = () => {
     setLoading(true);
-    fetch('http://localhost:5000/api/categories?all=true', {
+    fetch(`${API_URL}/api/categories?all=true`, {
       headers: {
         'Authorization': `Bearer ${token}`
       }
@@ -80,7 +81,7 @@ const ManageCategories = () => {
     formData.append('image', file);
 
     try {
-      const response = await fetch('http://localhost:5000/api/upload', {
+      const response = await fetch(`${API_URL}/api/upload`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`
@@ -116,8 +117,8 @@ const ManageCategories = () => {
 
     try {
       const url = editId 
-        ? `http://localhost:5000/api/categories/${editId}` 
-        : 'http://localhost:5000/api/categories';
+        ? `${API_URL}/api/categories/${editId}` 
+        : `${API_URL}/api/categories`;
       const method = editId ? 'PUT' : 'POST';
 
       const response = await fetch(url, {
@@ -148,7 +149,7 @@ const ManageCategories = () => {
 
     setErrorMsg('');
     try {
-      const response = await fetch(`http://localhost:5000/api/categories/${id}`, {
+      const response = await fetch(`${API_URL}/api/categories/${id}`, {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${token}`

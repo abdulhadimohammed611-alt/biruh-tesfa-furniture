@@ -8,6 +8,7 @@ import {
   Sparkles, Sofa, Bed, Briefcase, Utensils, Warehouse, 
   Lightbulb, ArrowRight, Star, Heart, Award, ShieldCheck, Hammer, FolderOpen 
 } from 'lucide-react';
+import { API_URL } from '../config';
 
 const getCategoryIcon = (slug) => {
   switch (slug) {
@@ -31,7 +32,7 @@ const Home = () => {
   const [categories, setCategories] = useState([]);
 
   useEffect(() => {
-    fetch('http://localhost:5000/api/categories')
+    fetch(`${API_URL}/api/categories`)
       .then(res => res.json())
       .then(data => {
         const mapped = data.map(cat => ({
@@ -58,7 +59,7 @@ const Home = () => {
 
   useEffect(() => {
     // Fetch top 3-4 products from API
-    fetch('http://localhost:5000/api/products?sort=rating')
+    fetch(`${API_URL}/api/products?sort=rating`)
       .then(res => res.json())
       .then(data => {
         setFeaturedProducts(data.slice(0, 3));

@@ -5,6 +5,7 @@ import { useLanguage } from '../context/LanguageContext';
 import { useCurrency } from '../context/CurrencyContext';
 import { useCart } from '../context/CartContext';
 import { Search, SlidersHorizontal, Star, ShoppingCart, Grid, List, Sparkles } from 'lucide-react';
+import { API_URL } from '../config';
 
 const Products = () => {
   const { t } = useTranslation();
@@ -33,7 +34,7 @@ const Products = () => {
   const [categoriesList, setCategoriesList] = useState([]);
 
   useEffect(() => {
-    fetch('http://localhost:5000/api/categories')
+    fetch(`${API_URL}/api/categories`)
       .then(res => res.json())
       .then(data => {
         const mapped = data.map(cat => ({
@@ -59,7 +60,7 @@ const Products = () => {
   // Fetch products based on filters
   const fetchFilteredProducts = () => {
     setLoading(true);
-    let url = `http://localhost:5000/api/products?currency=${currency}`;
+    let url = `${API_URL}/api/products?currency=${currency}`;
     
     if (categoryFilter) url += `&category=${categoryFilter}`;
     if (searchQuery) url += `&search=${searchQuery}`;
