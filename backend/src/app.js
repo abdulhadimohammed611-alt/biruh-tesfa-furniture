@@ -19,25 +19,56 @@ const categoryRoutes = require('./routes/category.routes');
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-// Middleware
-app.use(cors());
+// ---------------------------------------------------------------------------
+// CORS — allow all origins listed in FRONTEND_URL (comma-separated list
+// supported for multiple deployments e.g. Vercel + custom domain).
+// Falls back to allowing any origin in development.
+// ---------------------------------------------------------------------------
+const rawFrontendUrl = process.env.FRONTEND_URL || '';
+const allowedOrigins = rawFrontendUrl
+  ? rawFrontendUrl.split(',').map((u) => u.trim()).filter(Boolean)
+  : null; // null → allow all (development only)
+
+app.use(
+  cors({
+    origin: allowedOrigins
+      ? (origin, cb) => {
+          // Allow requests with no origin (server-to-server, curl, etc.)
+          if (!origin || allowedOrigins.includes(origin)) {
+            cb(null, true);
+          } else {
+            cb(new Error(`CORS blocked: origin '${origin}' is not allowed.`));
+          }
+        }
+      : '*',
+    credentials: true,
+  })
+);
+
 app.use(express.json({
   verify: (req, res, buf) => {
     req.rawBody = buf;
   }
 }));
 
-// Serve uploads folder statically
+// Serve uploads folder statically (local dev fallback)
 app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
 
-// Simple file upload endpoint (Admin protected or user protected)
+// ---------------------------------------------------------------------------
+// File upload endpoint — returns a publicly accessible URL.
+// Uses BACKEND_URL in production so the URL is never hardcoded to localhost.
+// ---------------------------------------------------------------------------
 app.post('/api/upload', verifyToken, upload.single('image'), (req, res) => {
   if (!req.file) {
     return res.status(400).json({ message: 'No file uploaded' });
   }
-  
-  // Return URL relative to this server
-  const fileUrl = `http://localhost:${PORT}/uploads/${req.file.filename}`;
+
+  // If Cloudinary was used (multer-storage-cloudinary sets req.file.path to
+  // the Cloudinary secure URL). Otherwise build a URL from BACKEND_URL.
+  const fileUrl = req.file.path && req.file.path.startsWith('http')
+    ? req.file.path
+    : `${process.env.BACKEND_URL || `http://localhost:${PORT}`}/uploads/${req.file.filename}`;
+
   return res.status(200).json({
     message: 'File uploaded successfully',
     url: fileUrl
@@ -53,14 +84,23 @@ app.use('/api/orders', orderRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/categories', categoryRoutes);
 
-// Health check endpoint
+// ---------------------------------------------------------------------------
+// Health check — GET /health
+// Render uses this path by default to verify the service is alive.
+// Must respond with 200 quickly; no DB round-trip so it never fails due to DB lag.
+// ---------------------------------------------------------------------------
+app.get('/health', (req, res) => {
+  res.status(200).json({ status: 'ok' });
+});
+
+// Detailed health check — GET /api/health
+// Includes a live DB connectivity test; useful for monitoring dashboards.
 app.get('/api/health', async (req, res) => {
   try {
-    const dbTest = await db.query('SELECT NOW()');
+    await db.testConnection();
     return res.status(200).json({
       status: 'healthy',
       database: 'connected',
-      timestamp: dbTest.rows[0].now
     });
   } catch (error) {
     return res.status(500).json({
@@ -81,7 +121,9 @@ app.use((err, req, res, next) => {
 
 // Start Server
 app.listen(PORT, () => {
-  console.log(`BIRUH TESFA Backend running on http://localhost:${PORT}`);
+  console.log(`BIRUH TESFA Backend running on port ${PORT}`);
+  console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
+  console.log(`Allowed CORS origins: ${allowedOrigins ? allowedOrigins.join(', ') : 'ALL (dev mode)'}`);
 });
 
 module.exports = app;

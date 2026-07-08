@@ -45,11 +45,10 @@ const Profile = () => {
   useEffect(() => {
     const successOrderId = searchParams.get('order_id');
     const orderSuccess = searchParams.get('order_success');
-    const mockChapa = searchParams.get('mock_chapa');
     const mockTelebirr = searchParams.get('mock_telebirr');
     const mockStripe = searchParams.get('mock_stripe');
     
-    if (successOrderId && (mockChapa || mockTelebirr || mockStripe)) {
+    if (successOrderId && (mockTelebirr || mockStripe)) {
       setSimulatingPayId(successOrderId);
     }
 
@@ -154,7 +153,7 @@ const Profile = () => {
           <div className="space-y-1">
             <h3 className="font-bold text-base">🔧 Payments Sandbox Verification</h3>
             <p className="text-xs text-amber-700 leading-relaxed max-w-xl">
-              You initialized a payment using **Chapa/Telebirr**. Click the button to simulate the successful webhook callback response from the payment network.
+              You initialized a payment using **Telebirr**. Click the button to simulate the successful webhook callback response from the payment network.
             </p>
           </div>
           <button

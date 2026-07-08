@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Mail, Phone, MapPin, Clock, Send, CheckCircle2 } from 'lucide-react';
+import { motion } from 'framer-motion';
+import { pageTransitionVariants } from '../animations/variants';
 
 const Contact = () => {
   const { t } = useTranslation();
@@ -15,7 +17,13 @@ const Contact = () => {
   };
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-16">
+    <motion.div
+      className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-16"
+      variants={pageTransitionVariants}
+      initial="initial"
+      animate="animate"
+      exit="exit"
+    >
       
       {/* Title */}
       <div className="text-center max-w-2xl mx-auto space-y-3">
@@ -158,7 +166,7 @@ const Contact = () => {
 
       </div>
 
-    </div>
+    </motion.div>
   );
 };
 

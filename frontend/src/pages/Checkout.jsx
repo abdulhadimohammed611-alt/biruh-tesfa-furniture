@@ -5,7 +5,7 @@ import { useCart } from '../context/CartContext';
 import { useCurrency } from '../context/CurrencyContext';
 import { useLanguage } from '../context/LanguageContext';
 import { useAuth } from '../context/AuthContext';
-import { CreditCard, ShieldCheck, ShoppingBag, Truck, MapPin, Phone, ShieldAlert, Sparkles, Building } from 'lucide-react';
+import { CreditCard, ShieldCheck, ShoppingBag, Truck, MapPin, Phone, ShieldAlert, Sparkles, Building, Copy, CheckCheck } from 'lucide-react';
 import { API_URL } from '../config';
 
 const Checkout = () => {
@@ -32,6 +32,7 @@ const Checkout = () => {
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
   const [successOrder, setSuccessOrder] = useState(null);
+  const [copiedAccount, setCopiedAccount] = useState(null);
 
   // Sync user info if logged in
   useEffect(() => {
@@ -46,7 +47,7 @@ const Checkout = () => {
     if (currency === 'USD') {
       setPaymentMethod('stripe');
     } else {
-      setPaymentMethod('chapa');
+      setPaymentMethod('telebirr');
     }
   }, [currency]);
 
@@ -100,7 +101,7 @@ const Checkout = () => {
         setSuccessOrder(data.order);
 
         // Process payment flow
-        if (paymentMethod === 'stripe' || paymentMethod === 'chapa' || paymentMethod === 'telebirr') {
+        if (paymentMethod === 'stripe' || paymentMethod === 'telebirr') {
           if (data.paymentDetails?.checkoutUrl) {
             setTimeout(() => {
               window.location.href = data.paymentDetails.checkoutUrl;
@@ -112,7 +113,7 @@ const Checkout = () => {
           // Bank transfer completes order instantly but payment_status remains pending
           setTimeout(() => {
             navigate('/profile?order_success=true');
-          }, 4000);
+          }, 6000);
         }
       } else {
         setErrorMsg(data.message || 'Failed to place order.');
@@ -123,6 +124,19 @@ const Checkout = () => {
       setLoading(false);
     }
   };
+
+  const copyToClipboard = (text, key) => {
+    navigator.clipboard.writeText(text).then(() => {
+      setCopiedAccount(key);
+      setTimeout(() => setCopiedAccount(null), 2500);
+    });
+  };
+
+  // Bank account details for transfer
+  const bankAccounts = [
+    { key: 'cbe', bank: 'Commercial Bank of Ethiopia (CBE)', account: '1000516345678', holder: 'Biruh Tesfa Furniture PLC' },
+    { key: 'awash', bank: 'Awash Bank', account: '0132045678900', holder: 'Biruh Tesfa Furniture PLC' },
+  ];
 
   if (successOrder) {
     return (
@@ -139,12 +153,25 @@ const Checkout = () => {
         )}
         
         {paymentMethod === 'bank_transfer' && (
-          <div className="text-left bg-amber-50 p-4 rounded-xl text-xs text-amber-900 border border-amber-200 space-y-2">
-            <p className="font-bold">Bank Transfer Instructions:</p>
-            <p>Please transfer **{formatPrice(0, successOrder.total_amount, lang)}** to either account:</p>
-            <p className="font-semibold">CBE Account: 1000123456789</p>
-            <p className="font-semibold">Awash Bank Account: 0132045678900</p>
-            <p className="text-[10px] text-amber-700 italic">Please send the transfer confirmation screenshot to support@biruhtesfa.com.</p>
+          <div className="text-left space-y-3">
+            <p className="text-sm font-bold text-stone-800">Bank Transfer Instructions</p>
+            <p className="text-xs text-stone-500 font-light">Please transfer <span className="font-bold text-stone-900">{formatPrice(0, successOrder.total_amount, lang)}</span> to one of the accounts below, then send the confirmation screenshot to <a href="mailto:support@biruhtesfa.com" className="text-primary-600 underline">support@biruhtesfa.com</a>.</p>
+            {bankAccounts.map(acc => (
+              <div key={acc.key} className="bg-amber-50 border border-amber-200 rounded-xl p-4 space-y-2">
+                <p className="text-[11px] font-bold text-amber-800 uppercase tracking-wider">{acc.bank}</p>
+                <p className="text-xs text-stone-600 font-light">Account Holder: <span className="font-semibold text-stone-800">{acc.holder}</span></p>
+                <div className="flex items-center justify-between gap-2">
+                  <p className="font-mono font-bold text-stone-900 text-sm tracking-wider">{acc.account}</p>
+                  <button
+                    type="button"
+                    onClick={() => copyToClipboard(acc.account, acc.key)}
+                    className="flex items-center space-x-1 text-[10px] font-semibold text-primary-700 bg-primary-50 border border-primary-200 px-2.5 py-1 rounded-lg hover:bg-primary-100 transition-colors shrink-0"
+                  >
+                    {copiedAccount === acc.key ? <><CheckCheck className="h-3 w-3" /><span>Copied!</span></> : <><Copy className="h-3 w-3" /><span>Copy</span></>}
+                  </button>
+                </div>
+              </div>
+            ))}
           </div>
         )}
 
@@ -308,24 +335,6 @@ const Checkout = () => {
             ) : (
               // ETB Options
               <div className="space-y-4">
-                
-                {/* Chapa */}
-                <label className={`flex items-center space-x-3 p-4 border rounded-2xl cursor-pointer transition-colors ${
-                  paymentMethod === 'chapa' ? 'border-primary-500 bg-primary-50/20' : 'border-stone-200 hover:bg-stone-50'
-                }`}>
-                  <input
-                    type="radio"
-                    name="paymentMethod"
-                    value="chapa"
-                    checked={paymentMethod === 'chapa'}
-                    onChange={(e) => setPaymentMethod(e.target.value)}
-                    className="h-4.5 w-4.5 text-primary-600 focus:ring-primary-500 border-stone-300"
-                  />
-                  <div>
-                    <span className="font-semibold text-stone-900 text-sm">Chapa (CBE Birr / Mobile Banking)</span>
-                    <p className="text-xs text-stone-500 font-light mt-0.5">Pay in ETB using Ethiopian commercial banks, cards, or wallets.</p>
-                  </div>
-                </label>
 
                 {/* Telebirr */}
                 <label className={`flex items-center space-x-3 p-4 border rounded-2xl cursor-pointer transition-colors ${
@@ -344,6 +353,27 @@ const Checkout = () => {
                     <p className="text-xs text-stone-500 font-light mt-0.5">Instant checkout with Ethio Telecom mobile money wallet.</p>
                   </div>
                 </label>
+
+                {/* Telebirr payment details — shown when telebirr is selected */}
+                {paymentMethod === 'telebirr' && (
+                  <div className="space-y-3 pl-1">
+                    <div className="bg-stone-50 border border-stone-200 rounded-xl p-4 space-y-2">
+                      <p className="text-[11px] font-bold text-stone-500 uppercase tracking-wider">Telebirr Payment</p>
+                      <p className="text-xs text-stone-500 font-light">Account Name: <span className="font-semibold text-stone-800">BIRUH TESFA Furniture</span></p>
+                      <div className="flex items-center justify-between gap-2">
+                        <p className="font-mono font-bold text-stone-900 text-sm tracking-wider">+251 911 223344</p>
+                        <button
+                          type="button"
+                          onClick={() => copyToClipboard('+251911223344', 'telebirr_phone')}
+                          className="flex items-center space-x-1 text-[10px] font-semibold text-primary-700 bg-primary-50 border border-primary-200 px-2.5 py-1 rounded-lg hover:bg-primary-100 transition-colors shrink-0"
+                        >
+                          {copiedAccount === 'telebirr_phone' ? <><CheckCheck className="h-3 w-3" /><span>Copied!</span></> : <><Copy className="h-3 w-3" /><span>Copy</span></>}
+                        </button>
+                      </div>
+                    </div>
+                    <p className="text-[10px] text-stone-400 italic px-1">Send payment to the number above, then place your order. Our team will verify and process it.</p>
+                  </div>
+                )}
 
                 {/* Bank Transfer */}
                 <label className={`flex items-center space-x-3 p-4 border rounded-2xl cursor-pointer transition-colors ${
@@ -365,6 +395,29 @@ const Checkout = () => {
                     </div>
                   </div>
                 </label>
+
+                {/* Bank account details — shown when bank_transfer is selected */}
+                {paymentMethod === 'bank_transfer' && (
+                  <div className="space-y-3 pl-1">
+                    {bankAccounts.map(acc => (
+                      <div key={acc.key} className="bg-stone-50 border border-stone-200 rounded-xl p-4 space-y-2">
+                        <p className="text-[11px] font-bold text-stone-500 uppercase tracking-wider">{acc.bank}</p>
+                        <p className="text-xs text-stone-500 font-light">Account Holder: <span className="font-semibold text-stone-800">{acc.holder}</span></p>
+                        <div className="flex items-center justify-between gap-2">
+                          <p className="font-mono font-bold text-stone-900 text-sm tracking-wider">{acc.account}</p>
+                          <button
+                            type="button"
+                            onClick={() => copyToClipboard(acc.account, acc.key)}
+                            className="flex items-center space-x-1 text-[10px] font-semibold text-primary-700 bg-primary-50 border border-primary-200 px-2.5 py-1 rounded-lg hover:bg-primary-100 transition-colors shrink-0"
+                          >
+                            {copiedAccount === acc.key ? <><CheckCheck className="h-3 w-3" /><span>Copied!</span></> : <><Copy className="h-3 w-3" /><span>Copy</span></>}
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                    <p className="text-[10px] text-stone-400 italic px-1">After transfer, send the confirmation screenshot to <span className="font-semibold">support@biruhtesfa.com</span>.</p>
+                  </div>
+                )}
 
               </div>
             )}

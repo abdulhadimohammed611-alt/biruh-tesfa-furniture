@@ -1,12 +1,20 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { Award, Hammer, Compass, Users } from 'lucide-react';
+import { motion } from 'framer-motion';
+import { pageTransitionVariants } from '../animations/variants';
 
 const About = () => {
   const { t } = useTranslation();
 
   return (
-    <div className="pb-20 space-y-20">
+    <motion.div
+      className="pb-20 space-y-20"
+      variants={pageTransitionVariants}
+      initial="initial"
+      animate="animate"
+      exit="exit"
+    >
       
       {/* Header Banner */}
       <div className="relative bg-stone-900 text-white py-24 text-center overflow-hidden">
@@ -93,7 +101,7 @@ const About = () => {
         </div>
       </div>
 
-    </div>
+    </motion.div>
   );
 };
 

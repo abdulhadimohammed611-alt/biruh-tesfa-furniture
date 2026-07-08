@@ -1,45 +1,74 @@
 const { Pool } = require('pg');
 require('dotenv').config();
 
-// Determine if we're connecting to a cloud/Neon database via DATABASE_URL
-const isCloudDatabase = !!process.env.DATABASE_URL;
+// ---------------------------------------------------------------------------
+// SSL Strategy
+//
+// Enable SSL with rejectUnauthorized:false when connecting to a hosted
+// PostgreSQL provider (Neon, Render, Supabase, ElephantSQL, etc.).
+// Two signals trigger production SSL:
+//   1. DATABASE_URL is set   → always a cloud connection string
+//   2. NODE_ENV=production   → catch Render/Vercel deployments without DATABASE_URL
+//
+// Local development with individual DB_* vars gets SSL disabled so a plain
+// local PostgreSQL install doesn't need TLS configuration.
+// ---------------------------------------------------------------------------
+const isCloudDatabase =
+  !!process.env.DATABASE_URL || process.env.NODE_ENV === 'production';
 
-// Create a connection pool to PostgreSQL
+const sslConfig = isCloudDatabase ? { rejectUnauthorized: false } : false;
+
+// ---------------------------------------------------------------------------
+// Pool configuration
+//
+// DATABASE_URL (preferred): full connection string provided by Neon/Render.
+//   When set, all individual DB_* variables are ignored.
+//
+// DB_HOST / DB_PORT / DB_USER / DB_PASSWORD / DB_DATABASE (fallback):
+//   Used for local development with a plain PostgreSQL instance.
+// ---------------------------------------------------------------------------
 const poolConfig = {
-  max: 20, // Maximum number of clients in the pool
-  idleTimeoutMillis: 30000, // Close idle clients after 30 seconds
-  connectionTimeoutMillis: 2000, // Return an error after 2 seconds if connection fails
-  // Always enable SSL when using DATABASE_URL (Neon requires it unconditionally)
-  // Disable SSL for local PostgreSQL using individual DB_* variables
-  ssl: isCloudDatabase ? { rejectUnauthorized: false } : false
+  max: 20,                       // Maximum concurrent client connections
+  idleTimeoutMillis: 30000,      // Release idle clients after 30 s
+  connectionTimeoutMillis: 5000, // Fail fast if the DB is unreachable (5 s)
+  ssl: sslConfig,
 };
 
-if (isCloudDatabase) {
-  // Neon / Render: use the full connection string
+if (process.env.DATABASE_URL) {
+  // Production / hosted: Neon, Render PostgreSQL, Supabase
   poolConfig.connectionString = process.env.DATABASE_URL;
-  console.log('Using DATABASE_URL connection (SSL enabled)');
+  console.log('[DB] Mode: cloud  |  SSL: enabled  |  source: DATABASE_URL');
 } else {
-  // Local development: use individual env vars
-  poolConfig.user = process.env.DB_USER || 'postgres';
-  poolConfig.host = process.env.DB_HOST || 'localhost';
+  // Local development: individual environment variables
+  poolConfig.user     = process.env.DB_USER     || 'postgres';
+  poolConfig.host     = process.env.DB_HOST     || 'localhost';
   poolConfig.database = process.env.DB_DATABASE || 'biruh_tesfa_furniture';
-  poolConfig.password = process.env.DB_PASSWORD || 'password123';
-  poolConfig.port = parseInt(process.env.DB_PORT || '5432');
-  console.log('Using local PostgreSQL connection (SSL disabled)');
+  poolConfig.password = process.env.DB_PASSWORD || '';
+  poolConfig.port     = parseInt(process.env.DB_PORT || '5432', 10);
+  const sslLabel = isCloudDatabase ? 'enabled (NODE_ENV=production)' : 'disabled';
+  console.log(`[DB] Mode: local  |  SSL: ${sslLabel}  |  host: ${poolConfig.host}:${poolConfig.port}`);
 }
 
 const pool = new Pool(poolConfig);
 
-// Test connection on startup
 pool.on('connect', () => {
-  console.log('PostgreSQL database pool connected successfully');
+  console.log('[DB] Client connected from pool');
 });
 
 pool.on('error', (err) => {
-  console.error('Unexpected error on idle database client', err);
+  console.error('[DB] Unexpected idle client error:', err.message);
 });
 
+// ---------------------------------------------------------------------------
+// Exports
+// ---------------------------------------------------------------------------
 module.exports = {
+  /** Run a parameterised query.  Usage: db.query('SELECT $1::text', ['hi']) */
   query: (text, params) => pool.query(text, params),
-  pool
+
+  /** Returns the pg Pool for transactions that need multiple statements. */
+  pool,
+
+  /** Lightweight connectivity check — used by the /health endpoint. */
+  testConnection: () => pool.query('SELECT 1'),
 };

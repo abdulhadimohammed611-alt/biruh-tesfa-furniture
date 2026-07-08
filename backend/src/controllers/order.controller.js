@@ -87,12 +87,13 @@ const createOrder = async (req, res) => {
             });
           }
 
+          const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
           const session = await stripeInstance.checkout.sessions.create({
             payment_method_types: ['card'],
             line_items: lineItems,
             mode: 'payment',
-            success_url: `${process.env.FRONTEND_URL || 'http://localhost:5173'}/profile?order_success=true&order_id=${order.id}`,
-            cancel_url: `${process.env.FRONTEND_URL || 'http://localhost:5173'}/checkout`,
+            success_url: `${frontendUrl}/profile?order_success=true&order_id=${order.id}`,
+            cancel_url: `${frontendUrl}/checkout`,
             metadata: { order_id: order.id, user_id: userId },
           });
 
@@ -109,8 +110,9 @@ const createOrder = async (req, res) => {
         // Mock Stripe Integration
         const mockSessionId = 'cs_mock_' + Math.random().toString(36).substring(2, 15);
         await client.query('UPDATE orders SET payment_intent_id = $1 WHERE id = $2', [mockSessionId, order.id]);
+        const mockFrontend = process.env.FRONTEND_URL || 'http://localhost:5173';
         paymentDetails = {
-          checkoutUrl: `http://localhost:5173/profile?order_success=true&order_id=${order.id}&mock_stripe=true`,
+          checkoutUrl: `${mockFrontend}/profile?order_success=true&order_id=${order.id}&mock_stripe=true`,
           stripeEnabled: false,
           mockSessionId
         };
@@ -138,8 +140,8 @@ const createOrder = async (req, res) => {
               first_name: shippingAddress.name.split(' ')[0] || 'Customer',
               last_name: shippingAddress.name.split(' ')[1] || 'BiruhTesfa',
               tx_ref: txRef,
-              callback_url: `http://localhost:5000/api/orders/chapa-webhook`,
-              return_url: `http://localhost:5173/profile?order_success=true&order_id=${order.id}`,
+              callback_url: `${process.env.BACKEND_URL || 'http://localhost:5000'}/api/orders/chapa-webhook`,
+              return_url: `${process.env.FRONTEND_URL || 'http://localhost:5173'}/profile?order_success=true&order_id=${order.id}`,
               customization: {
                 title: 'BIRUH TESFA Furniture Payment',
                 description: 'Payment for order ' + order.id
@@ -162,8 +164,9 @@ const createOrder = async (req, res) => {
         }
       } else {
         // Mock Chapa
+        const chapaFrontend = process.env.FRONTEND_URL || 'http://localhost:5173';
         paymentDetails = {
-          checkoutUrl: `http://localhost:5173/profile?order_success=true&order_id=${order.id}&mock_chapa=true`,
+          checkoutUrl: `${chapaFrontend}/profile?order_success=true&order_id=${order.id}&mock_chapa=true`,
           chapaEnabled: false
         };
       }
@@ -171,8 +174,9 @@ const createOrder = async (req, res) => {
       // Telebirr simulation
       const mockRef = 'telebirr_ref_' + Math.random().toString(36).substring(2, 10);
       await client.query('UPDATE orders SET payment_intent_id = $1 WHERE id = $2', [mockRef, order.id]);
+      const telebirrFrontend = process.env.FRONTEND_URL || 'http://localhost:5173';
       paymentDetails = {
-        checkoutUrl: `http://localhost:5173/profile?order_success=true&order_id=${order.id}&mock_telebirr=true`,
+        checkoutUrl: `${telebirrFrontend}/profile?order_success=true&order_id=${order.id}&mock_telebirr=true`,
         telebirrEnabled: false
       };
     } else if (paymentMethod === 'bank_transfer') {
